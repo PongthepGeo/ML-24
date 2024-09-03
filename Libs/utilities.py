@@ -130,16 +130,16 @@ def linear_model(x, omega_0, omega):
 #-----------------------------------------------------------------------------------------#
 
 def plot_rock(df, predicted_density=None):
-    plt.figure(figsize=(10, 6))
-    plt.scatter(df['Rock'], df['Random Density'], color='orange', edgecolor='black', label='True Rock Density')
-    if predicted_density is not None:
-        plt.plot(df['Rock'], predicted_density, color='green', marker='x', markeredgecolor='red', linestyle='-',
+	plt.figure(figsize=(10, 6))
+	plt.scatter(df['Rock'], df['Random Density'], color='orange', edgecolor='black', label='True Rock Density')
+	if predicted_density is not None:
+		plt.plot(df['Rock'], predicted_density, color='green', marker='x', markeredgecolor='red', linestyle='-',
 				 label='Predicted Density')
-    plt.ylabel(r'Density ($\mathrm{kg/m^3}$)')
-    plt.xticks(rotation=90)
-    plt.legend(loc='lower right')
-    plt.savefig(f'figure_out/linear_model.png', format='png', bbox_inches='tight', transparent=True, pad_inches=0.1)
-    plt.show()
+	plt.ylabel(r'Density ($\mathrm{kg/m^3}$)')
+	plt.xticks(rotation=90)
+	plt.legend(loc='lower right')
+	plt.savefig(f'figure_out/linear_model.png', format='png', bbox_inches='tight', transparent=True, pad_inches=0.1)
+	plt.show()
 
 #-----------------------------------------------------------------------------------------#
 
@@ -163,5 +163,93 @@ def vector(normalized_weights, normalized_bubble_teas, x, y, u, v, weights, bubb
 	plt.savefig(f'figure_out/bubble_tea.png', format='png', bbox_inches='tight',
 				transparent=True, pad_inches=0.1)
 	plt.show()
+
+#-----------------------------------------------------------------------------------------#
+
+def cost_function(y_true, y_pred):
+	return np.mean((y_true - y_pred) ** 2)
+
+def plot_cost_function(df, guesses):
+	x_labels = df['Rock']  
+	y = df['Random Density']
+	results = []
+
+	plt.figure(figsize=(12, 8))  # Create a larger figure for better visibility
+	x_numeric = np.arange(len(df))
+	for i, guess in enumerate(guesses):
+		omega_0 = guess['omega_0']
+		omega_1 = guess['omega_1']
+		color = guess['color']
+		predicted_density = omega_0 + omega_1 * x_numeric
+		mse = cost_function(y, predicted_density)
+		results.append({
+			'omega_0': omega_0,
+			'omega_1': omega_1,
+			'MSE': mse
+		})
+		
+		plt.plot(x_labels, predicted_density, color=color,
+				 label=f'Guess {i+1}: $\\omega_0$={omega_0}, $\\omega_1$={omega_1}, MSE={mse:.2f}')
+	plt.scatter(x_labels, y, color='orange', edgecolor='black', label='Density')
+	plt.xlabel('Rock Type')
+	plt.ylabel(r'Density ($\mathrm{kg/m^3}$)')
+	plt.xticks(rotation=90)  # Rotate x-axis labels for better visibility
+	plt.legend(loc='lower right')
+	plt.savefig(f'figure_out/manual_cost.png', format='png', bbox_inches='tight', transparent=True,
+				pad_inches=0.1)
+	plt.show()
+
+def plot_grid_search(weight_range, bias_range, rmse_matrix):
+    fig, (ax1, ax2) = plt.subplots(1, 2, figsize=(14, 6))
+
+    # Contour Plot
+    CS = ax1.contour(weight_range, bias_range, rmse_matrix, levels=20, colors='k', linestyles='solid')
+    ax1.clabel(CS, fontsize=8, inline=True)  # Label the contours
+    ax1.set_xlabel(r'Weight ($\omega_1$)')
+    ax1.set_ylabel(r'Bias ($\omega_0$)')
+    ax1.set_title('Contour Plot of RMSE')
+
+    # Heatmap
+    heatmap = ax2.imshow(rmse_matrix, aspect='auto',
+						 extent=[weight_range.min(), weight_range.max(), bias_range.min(), bias_range.max()],
+						 origin='lower', cmap='YlGn')
+    plt.colorbar(heatmap, ax=ax2, label='RMSE')
+    ax2.set_xlabel(r'Weight ($\omega_1$)')
+    ax2.set_ylabel(r'Bias ($\omega_0$)')
+    ax2.set_title('Heatmap of RMSE')
+    plt.savefig('figure_out/grid_search_combined.svg', format='svg', bbox_inches='tight', transparent=True, pad_inches=0.1)
+    plt.show()
+
+#-----------------------------------------------------------------------------------------#
+
+def plot_cross_sections(rmse_matrix, bias_range, weight_range):
+    fig, ax = plt.subplots(1, 3, figsize=(18, 5))
+    
+    # Horizontal Cross-Section: Fix a bias and vary the weight
+    fixed_bias_index = 500  # Example: Mid-point of bias range
+    ax[0].plot(weight_range, rmse_matrix[fixed_bias_index, :], label=f'Fixed Bias = {bias_range[fixed_bias_index]:.1f}', color='orange')
+    ax[0].set_xlabel(r'Weight ($\omega_1$)')
+    ax[0].set_ylabel('RMSE')
+    ax[0].set_title('Cross-Section with Fixed Bias')
+    ax[0].legend()
+    
+    # Vertical Cross-Section: Fix a weight and vary the bias
+    fixed_weight_index = 500  # Example: Mid-point of weight range
+    ax[1].plot(bias_range, rmse_matrix[:, fixed_weight_index], label=f'Fixed Weight = {weight_range[fixed_weight_index]:.1f}', color='green')
+    ax[1].set_xlabel(r'Bias ($\omega_0$)')
+    ax[1].set_ylabel('RMSE')
+    ax[1].set_title('Cross-Section with Fixed Weight')
+    ax[1].legend()
+    
+    # Diagonal Cross-Section: Vary both bias and weight
+    diagonal_index = np.arange(min(len(bias_range), len(weight_range)))  # Diagonal indices
+    ax[2].plot(bias_range[diagonal_index], rmse_matrix[diagonal_index, diagonal_index], label='Diagonal Cross-Section', color='black')
+    ax[2].set_xlabel(r'Bias ($\omega_0$) & Weight ($\omega_1$)')
+    ax[2].set_ylabel('RMSE')
+    ax[2].set_title('Diagonal Cross-Section')
+    ax[2].legend()
+    
+    plt.savefig('figure_out/rmse_cross_sections.svg', format='svg', bbox_inches='tight', transparent=True, pad_inches=0.1)
+    plt.show()
 
 #-----------------------------------------------------------------------------------------#
