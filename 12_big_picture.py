@@ -1,53 +1,48 @@
+#-----------------------------------------------------------------------------------------#
+import sys
+sys.path.append('./Libs')
+import utilities as U
+#-----------------------------------------------------------------------------------------#
 import numpy as np
 import matplotlib.pyplot as plt
+import pandas as pd
+#-----------------------------------------------------------------------------------------#
 
-# Define the function to minimize
+# Define the simple quadratic function g(w) = w^2
 def g(w):
-    return w**2
+    return w ** 2
 
-# Define the gradient of the function
+# Define the gradient of the function (which is 2w for g(w) = w^2)
 def gradient(w):
     return 2 * w
 
-# Local optimization using a constant step length
-def local_optimization(initial_point, step_length, num_iterations):
+# Local optimization using a constant step length with a tolerance
+def local_optimization(initial_point, step_length, num_iterations, tolerance):
     w = initial_point
     points = [w]  # List to store points for each iteration
-    
     for k in range(num_iterations):
         grad = gradient(w)
+        print(f"Iteration {k}: w = {w}, Gradient = {grad}, g(w) = {g(w)}") # Print gradient at each step
         w_new = w - step_length * grad
-        
-        # Stop if there's no further improvement
-        if g(w_new) >= g(w):
+        # Allow small tolerance for improvement
+        if abs(g(w_new) - g(w)) < tolerance:
             break
-        
         w = w_new
         points.append(w)
-    
     return w, points
 
-# Parameters
-initial_point = 10  # Starting point w_0
-step_length = 0.1   # Constant step length alpha
+# Updated Parameters for the simplified quadratic function
+initial_point = 10  # Starting point
+step_length = 0.1   # Step size
 num_iterations = 50  # Maximum number of iterations
+tolerance = 1e-6  # Tolerance for stopping
 
 # Run the optimization
-final_point, points = local_optimization(initial_point, step_length, num_iterations)
+final_point, points = local_optimization(initial_point, step_length, num_iterations, tolerance)
 
 # Output the results
 print(f"Final point: {final_point}")
-print(f"Function value at final point: {g(final_point)}")
+print(f"Function value at final point (g(w)): {g(final_point)}")
 print(f"Sequence of points: {points}")
 
-# Plotting
-w_values = np.linspace(-12, 12, 400)
-g_values = g(w_values)
-
-plt.plot(w_values, g_values, label='g(w) = w^2')
-plt.scatter(points, [g(w) for w in points], color='red', label='Optimization Path')
-plt.xlabel('w')
-plt.ylabel('g(w)')
-plt.title('Local Optimization Path with Constant Step Length')
-plt.legend()
-plt.show()
+U.plot_optimization_path(g, points)

@@ -10,6 +10,8 @@ import numpy as np
 df = pd.read_csv('../dataset/ch_04/rock_density.csv')
 bias_range = np.linspace(1500, 3500, 1000)
 weight_range = np.linspace(-100, 100, 1000)
+save_weight = 'data_out/weight_range.npy'
+save_bias = 'data_out/bias_range.npy'
 
 #-----------------------------------------------------------------------------------------#
 
@@ -33,6 +35,8 @@ for i, omega_0 in enumerate(bias_range):
         predicted_density = omega_0 + omega_1 * x_numeric
         rmse = U.cost_function(y_actual, predicted_density)
         rmse_matrix[i, j] = rmse
+np.save(save_weight, rmse_matrix)
+np.save(save_bias, bias_range)
 
 #-----------------------------------------------------------------------------------------#
 

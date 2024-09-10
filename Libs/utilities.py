@@ -200,56 +200,76 @@ def plot_cost_function(df, guesses):
 	plt.show()
 
 def plot_grid_search(weight_range, bias_range, rmse_matrix):
-    fig, (ax1, ax2) = plt.subplots(1, 2, figsize=(14, 6))
+	fig, (ax1, ax2) = plt.subplots(1, 2, figsize=(14, 6))
 
-    # Contour Plot
-    CS = ax1.contour(weight_range, bias_range, rmse_matrix, levels=20, colors='k', linestyles='solid')
-    ax1.clabel(CS, fontsize=8, inline=True)  # Label the contours
-    ax1.set_xlabel(r'Weight ($\omega_1$)')
-    ax1.set_ylabel(r'Bias ($\omega_0$)')
-    ax1.set_title('Contour Plot of RMSE')
+	# Contour Plot
+	CS = ax1.contour(weight_range, bias_range, rmse_matrix, levels=20, colors='k', linestyles='solid')
+	ax1.clabel(CS, fontsize=8, inline=True)  # Label the contours
+	ax1.set_xlabel(r'Weight ($\omega_1$)')
+	ax1.set_ylabel(r'Bias ($\omega_0$)')
+	ax1.set_title('Contour Plot of RMSE')
 
-    # Heatmap
-    heatmap = ax2.imshow(rmse_matrix, aspect='auto',
+	# Heatmap
+	heatmap = ax2.imshow(rmse_matrix, aspect='auto',
 						 extent=[weight_range.min(), weight_range.max(), bias_range.min(), bias_range.max()],
 						 origin='lower', cmap='YlGn')
-    plt.colorbar(heatmap, ax=ax2, label='RMSE')
-    ax2.set_xlabel(r'Weight ($\omega_1$)')
-    ax2.set_ylabel(r'Bias ($\omega_0$)')
-    ax2.set_title('Heatmap of RMSE')
-    plt.savefig('figure_out/grid_search_combined.svg', format='svg', bbox_inches='tight', transparent=True, pad_inches=0.1)
-    plt.show()
+	plt.colorbar(heatmap, ax=ax2, label='RMSE')
+	ax2.set_xlabel(r'Weight ($\omega_1$)')
+	ax2.set_ylabel(r'Bias ($\omega_0$)')
+	ax2.set_title('Heatmap of RMSE')
+	plt.savefig('figure_out/grid_search_combined.svg', format='svg', bbox_inches='tight', transparent=True, pad_inches=0.1)
+	plt.show()
 
 #-----------------------------------------------------------------------------------------#
 
 def plot_cross_sections(rmse_matrix, bias_range, weight_range):
-    fig, ax = plt.subplots(1, 3, figsize=(18, 5))
-    
-    # Horizontal Cross-Section: Fix a bias and vary the weight
-    fixed_bias_index = 500  # Example: Mid-point of bias range
-    ax[0].plot(weight_range, rmse_matrix[fixed_bias_index, :], label=f'Fixed Bias = {bias_range[fixed_bias_index]:.1f}', color='orange')
-    ax[0].set_xlabel(r'Weight ($\omega_1$)')
-    ax[0].set_ylabel('RMSE')
-    ax[0].set_title('Cross-Section with Fixed Bias')
-    ax[0].legend()
-    
-    # Vertical Cross-Section: Fix a weight and vary the bias
-    fixed_weight_index = 500  # Example: Mid-point of weight range
-    ax[1].plot(bias_range, rmse_matrix[:, fixed_weight_index], label=f'Fixed Weight = {weight_range[fixed_weight_index]:.1f}', color='green')
-    ax[1].set_xlabel(r'Bias ($\omega_0$)')
-    ax[1].set_ylabel('RMSE')
-    ax[1].set_title('Cross-Section with Fixed Weight')
-    ax[1].legend()
-    
-    # Diagonal Cross-Section: Vary both bias and weight
-    diagonal_index = np.arange(min(len(bias_range), len(weight_range)))  # Diagonal indices
-    ax[2].plot(bias_range[diagonal_index], rmse_matrix[diagonal_index, diagonal_index], label='Diagonal Cross-Section', color='black')
-    ax[2].set_xlabel(r'Bias ($\omega_0$) & Weight ($\omega_1$)')
-    ax[2].set_ylabel('RMSE')
-    ax[2].set_title('Diagonal Cross-Section')
-    ax[2].legend()
-    
-    plt.savefig('figure_out/rmse_cross_sections.svg', format='svg', bbox_inches='tight', transparent=True, pad_inches=0.1)
-    plt.show()
+	# Horizontal Cross-Section: Fix a bias and vary the weight
+	fixed_bias_index = 500  # Example: Mid-point of bias range
+	plt.figure(figsize=(6, 5))
+	plt.plot(weight_range, rmse_matrix[fixed_bias_index, :], label=f'Fixed Bias = {bias_range[fixed_bias_index]:.1f}', color='orange')
+	plt.xlabel(r'Weight ($\omega_1$)')
+	plt.ylabel('RMSE')
+	plt.title('Cross-Section with Fixed Bias')
+	plt.legend()
+	plt.savefig('figure_out/rmse_cross_section_fixed_bias.svg', format='svg', bbox_inches='tight', transparent=True, pad_inches=0.1)
+	plt.show()
+	
+	# Vertical Cross-Section: Fix a weight and vary the bias
+	fixed_weight_index = 500  # Example: Mid-point of weight range
+	plt.figure(figsize=(6, 5))
+	plt.plot(bias_range, rmse_matrix[:, fixed_weight_index], label=f'Fixed Weight = {weight_range[fixed_weight_index]:.1f}', color='green')
+	plt.xlabel(r'Bias ($\omega_0$)')
+	plt.ylabel('RMSE')
+	plt.title('Cross-Section with Fixed Weight')
+	plt.legend()
+	plt.savefig('figure_out/rmse_cross_section_fixed_weight.svg', format='svg', bbox_inches='tight', transparent=True, pad_inches=0.1)
+	plt.show()
+	
+	# Diagonal Cross-Section: Vary both bias and weight
+	diagonal_index = np.arange(min(len(bias_range), len(weight_range)))  # Diagonal indices
+	plt.figure(figsize=(6, 5))
+	plt.plot(bias_range[diagonal_index], rmse_matrix[diagonal_index, diagonal_index], label='Diagonal Cross-Section', color='black')
+	plt.xlabel(r'Bias ($\omega_0$) & Weight ($\omega_1$)')
+	plt.ylabel('RMSE')
+	plt.title('Diagonal Cross-Section')
+	plt.legend()
+	plt.savefig('figure_out/rmse_cross_section_diagonal.svg', format='svg', bbox_inches='tight', transparent=True, pad_inches=0.1)
+	plt.show()
 
 #-----------------------------------------------------------------------------------------#
+
+def plot_optimization_path(g, points):
+	# Plotting the optimization path
+	w_values = np.linspace(-12, 12, 400)  # Range for plotting
+	g_values = g(w_values)
+	plt.figure(figsize=(6, 5))
+	plt.plot(w_values, g_values, label=r'$g(w) = w^2$')
+	plt.scatter(points, [w**2 for w in points], color='orange', edgecolor='black',
+				label=r'Optimization Path')
+	plt.xlabel(r'$w$')  # LaTeX for w
+	plt.ylabel(r'$g(w)$')  # LaTeX for g(w)
+	plt.title(r'Local Optimization Path for $g(w) = w^2$')
+	plt.legend()
+	plt.savefig('figure_out/optimization_path.svg', format='svg', bbox_inches='tight',
+				transparent=True, pad_inches=0.1)
+	plt.show()
