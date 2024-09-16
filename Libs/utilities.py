@@ -4,6 +4,9 @@ import numpy as np
 import matplotlib.pyplot as plt
 from matplotlib import colors
 from mpl_toolkits.axes_grid1 import make_axes_locatable
+from sklearn.metrics import precision_score, recall_score, f1_score, roc_auc_score
+from sklearn.metrics import confusion_matrix as sklearn_confusion_matrix
+import seaborn as sns
 #-----------------------------------------------------------------------------------------#
 params = {
 	'savefig.dpi': 300,  
@@ -273,3 +276,45 @@ def plot_optimization_path(g, points):
 	plt.savefig('figure_out/optimization_path.svg', format='svg', bbox_inches='tight',
 				transparent=True, pad_inches=0.1)
 	plt.show()
+
+#-----------------------------------------------------------------------------------------#
+
+def history_plot(eval_result, output_dir='figure_out'):
+	epochs = len(eval_result['validation_0']['mlogloss'])
+	x_axis = range(0, epochs)
+	plt.figure(figsize=(8, 6))
+	plt.plot(x_axis, eval_result['validation_0']['mlogloss'], label='Train Log Loss')
+	plt.plot(x_axis, eval_result['validation_1']['mlogloss'], label='Validation Log Loss')
+	plt.xlabel('Epochs')
+	plt.ylabel('Log Loss')
+	plt.title('XGBoost Training and Validation Log Loss Over Epochs')
+	plt.legend()
+	plt.savefig(f'{output_dir}/history.svg', format='svg',
+				bbox_inches='tight', transparent=True, pad_inches=0.0)
+	plt.show()
+
+#-----------------------------------------------------------------------------------------#
+
+def plot_confusion_matrix(y_test, y_pred, X_test, xgb_clf, output_dir='figure_out'):
+    # NOTE Focus on class 0 for precision, recall, and F1-score
+    precision_class_0 = precision_score(y_test, y_pred, labels=[0], average='macro')
+    recall_class_0 = recall_score(y_test, y_pred, labels=[0], average='macro')
+    f1_class_0 = f1_score(y_test, y_pred, labels=[0], average='macro')
+    # ROC-AUC for class 0 using the one-vs-rest strategy
+    roc_auc_class_0 = roc_auc_score((y_test == 0).astype(int), xgb_clf.predict_proba(X_test)[:, 0])
+    print(f"Precision for Class 0: {precision_class_0:.4f}")
+    print(f"Recall for Class 0: {recall_class_0:.4f}")
+    print(f"F1-Score for Class 0: {f1_class_0:.4f}")
+    print(f"ROC-AUC for Class 0: {roc_auc_class_0:.4f}")
+
+    conf_matrix = sklearn_confusion_matrix(y_test, y_pred)
+    plt.figure(figsize=(8, 6))
+    sns.heatmap(conf_matrix, annot=True, fmt="d", cmap="Greens", cbar=False, 
+                xticklabels=[f'Class {i}' for i in range(conf_matrix.shape[1])],
+                yticklabels=[f'Class {i}' for i in range(conf_matrix.shape[0])])
+    plt.xlabel('Predicted Class')
+    plt.ylabel('True Class')
+    plt.title('Confusion Matrix')
+    plt.savefig(f'{output_dir}/confusion.svg', format='svg',
+                bbox_inches='tight', transparent=True, pad_inches=0.0)
+    plt.show()

@@ -31,18 +31,19 @@ def local_optimization(initial_point, step_length, num_iterations, tolerance):
         points.append(w)
     return w, points
 
-# Updated Parameters for the simplified quadratic function
+#-----------------------------------------------------------------------------------------#
+
 initial_point = 10  # Starting point
 step_length = 0.1   # Step size
 num_iterations = 50  # Maximum number of iterations
 tolerance = 1e-6  # Tolerance for stopping
-
-# Run the optimization
 final_point, points = local_optimization(initial_point, step_length, num_iterations, tolerance)
-
-# Output the results
 print(f"Final point: {final_point}")
 print(f"Function value at final point (g(w)): {g(final_point)}")
 print(f"Sequence of points: {points}")
 
+#-----------------------------------------------------------------------------------------#
+
 U.plot_optimization_path(g, points)
+
+#-----------------------------------------------------------------------------------------#
