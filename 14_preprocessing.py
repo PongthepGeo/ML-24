@@ -17,7 +17,8 @@ columns_to_normalize = ['NDVI', 'GNDVI', 'NDRE', 'OSAVI', 'BLUE', 'GREEN', 'RED'
 scaler = StandardScaler()
 
 # Create new columns for normalized data with '_normalized' suffix
-df_normalized = pd.DataFrame(scaler.fit_transform(df[columns_to_normalize]), columns=[f'{col}_normalized' for col in columns_to_normalize])
+df_normalized = pd.DataFrame(scaler.fit_transform(df[columns_to_normalize]),
+                             columns=[f'{col}_normalized' for col in columns_to_normalize])
 
 # Step 3: Apply smoothing window (moving average with window size 3) separately for original and normalized data
 # Original columns smoothed
