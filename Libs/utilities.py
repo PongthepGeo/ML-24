@@ -7,6 +7,8 @@ from mpl_toolkits.axes_grid1 import make_axes_locatable
 from sklearn.metrics import precision_score, recall_score, f1_score, roc_auc_score
 from sklearn.metrics import confusion_matrix as sklearn_confusion_matrix
 import seaborn as sns
+from PIL import Image
+import torch
 #-----------------------------------------------------------------------------------------#
 params = {
 	'savefig.dpi': 300,  
@@ -318,3 +320,28 @@ def plot_confusion_matrix(y_test, y_pred, X_test, xgb_clf, output_dir='figure_ou
     plt.savefig(f'{output_dir}/confusion.svg', format='svg',
                 bbox_inches='tight', transparent=True, pad_inches=0.0)
     plt.show()
+
+#-----------------------------------------------------------------------------------------#
+
+def preprocess_image(image_path):
+    # Load and convert the image to RGB format
+    img = Image.open(image_path).convert("RGB")
+    # Convert to numpy array and normalize to [0, 1]
+    img_np = np.array(img).astype(np.float32) / 255.0
+    original_shape = img_np.shape[:2]  # Store the original image dimensions (height, width)
+    # Flatten the image pixels and convert to tensor
+    img_tensor = torch.tensor(img_np.reshape(-1, 3), dtype=torch.float32)
+    return img_tensor, original_shape
+
+def predict_image_direct(device, model, image_tensor, image_shape):
+    # Move the image tensor to the same device as the model
+    image_tensor = image_tensor.to(device)
+    # Make predictions
+    with torch.no_grad():
+        outputs = model(image_tensor, apply_softmax=True)  # Apply softmax for probabilities
+    predictions = torch.argmax(outputs, dim=1).cpu().numpy()  # Direct class prediction
+    # Reshape back to the original image dimensions
+    predictions = predictions.reshape(image_shape)
+    return predictions
+
+#-----------------------------------------------------------------------------------------#
